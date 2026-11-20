@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover lets the page draw under the notch / status bar; we pad with safe-area insets in CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>TIT Student App</title>
+  <meta name="theme-color" content="#F7EBEB">
+
+  <!-- iOS "Add to Home Screen" support (makes it open full-screen like a real app) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TIT Group">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============ SPLASH LOADER (red dots, like the original app) ============ -->
+  <div id="loader" class="loader" aria-hidden="true">
+    <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <!-- ============ SCREEN 1 : HOME / DASHBOARD ============ -->
+  <section id="screen-home" class="screen">
+    <header class="top-bar">
+      <img class="top-logo" src="assets/logo.jpg" alt="logo">
+      <div class="top-title">
+        <div id="hdr-name">STUDENT NAME</div>
+        <div id="hdr-enroll">(0000XX000000)</div>
+      </div>
+      <button class="hamburger" id="btn-menu" aria-label="Menu"><span></span><span></span><span></span></button>
+    </header>
+
+    <!-- Segmented tabs: Academic / Fee / Facilities -->
+    <nav class="tabs" id="tabs">
+      <div class="tab-pill" id="tab-pill"></div>
+      <!-- the line breaks copy how the original app wraps these labels -->
+      <button class="tab active" data-tab="academic">Academ<br>ic</button>
+      <button class="tab" data-tab="fee">Fee</button>
+      <button class="tab" data-tab="facilities">Facilitie<br>s</button>
+    </nav>
+
+    <main class="grid-scroll">
+      <!-- tiles are filled in by js/app.js (renderTiles) -->
+      <div class="grid" id="grid"></div>
+    </main>
+  </section>
+
+  <!-- ============ SCREEN 2 : ID CARDS LIST ============ -->
+  <section id="screen-idcards" class="screen hidden">
+    <header class="page-bar">
+      <button class="back" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h1>ID CARDS</h1>
+    </header>
+    <div class="grid big" id="grid-idcards"></div>
+
+    <!-- ============ SCREEN 3 : IDENTITY CARD (modal over the list) ============ -->
+    <div id="idcard-modal" class="modal hidden">
+      <div class="modal-sheet">
+        <div id="idcard-holder"></div>
+        <button class="download-btn" id="btn-download">
+          Downdload Card
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CUSTOMISE / EDIT DETAILS ============ -->
+  <section id="screen-edit" class="screen hidden">
+    <header class="page-bar">
+      <button class="back" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h1>EDIT DETAILS</h1>
+    </header>
+
+    <form id="edit-form" class="edit-form" autocomplete="off">
+      <div class="photo-pick">
+        <img id="edit-photo" alt="Passport photo">
+        <label class="photo-btn">
+          Change Photo
+          <input type="file" id="photo-input" accept="image/*" hidden>
+        </label>
+        <small>Passport size photo – it is cropped to a square automatically.</small>
+      </div>
+
+      <label>Full Name<input name="name" required maxlength="40" placeholder="e.g. Rahul Sharma"></label>
+      <label>Course<input name="course" required maxlength="40"></label>
+      <label>Branch<input name="branch" maxlength="60" placeholder="e.g. CSE - Artificial Intelligence & Data Science"></label>
+      <label>Mobile No.<input name="mobile" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10 digit number"></label>
+      <label>Enrollment No.<input name="enroll" required maxlength="16" placeholder="e.g. 0111CS231234" class="upper"></label>
+      <label>Web app link for QR <span class="opt">(optional)</span>
+        <input name="qrBase" type="url" placeholder="https://your-site.github.io/tit-app/">
+        <small>When set, scanning the QR opens this student's ID card on that site. When empty, the QR holds the student's details as text.</small>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" id="btn-reset">Reset</button>
+        <button type="submit" class="btn-red">Save</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============ QR TARGET : card opened from a scanned QR ============ -->
+  <section id="screen-qrcard" class="screen hidden qr-screen">
+    <header class="page-bar"><h1>ID CARDS</h1></header>
+    <div class="qr-sheet"><div id="qrcard-holder"></div></div>
+  </section>
+
+  <!-- ============ SIDE MENU (opened by the ☰ button) ============ -->
+  <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <img id="drawer-photo" alt="">
+      <div>
+        <b id="drawer-name">Student Name</b>
+        <span id="drawer-enroll">0000XX000000</span>
+      </div>
+    </div>
+    <ul class="drawer-list">
+      <li data-act="edit" class="highlight">✏️<span>Edit My Details</span></li>
+      <li data-act="idcard">🪪<span>My ID Cards</span></li>
+    </ul>
+    <div class="drawer-foot">TIT Student App · v1.0</div>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="lib/qrcode.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/card.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# original app screenshots (may show real student details) - kept on this PC only
+design-reference/
+images.jpg
+node_modules/
+.vercel/
+.netlify/
